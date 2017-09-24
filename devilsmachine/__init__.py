@@ -16,6 +16,7 @@ def make_argparser() -> argparse.ArgumentParser:
     parser.add_argument('file')
     return parser
 
+
 def main() -> int:
     parser = make_argparser()
     args = parser.parse_args()

@@ -6,9 +6,9 @@ from devilsmachine.data import Buffer, VAOData, VBOAttributesData, AttributeData
 
 
 class NodeTag(enum.IntEnum):
-    NODE_TAG_VBO = 0
-    NODE_TAG_EBO = 1
-    NODE_TAG_VAO = 2
+    VERTEX_BUFFER = 0
+    ELEMENT_BUFFER = 1
+    VERTEX_ATTRIBUTE_DEFINITION = 2
 
 
 class GiygasFileBuilder(object):
@@ -45,7 +45,7 @@ class GiygasFileBuilder(object):
         size = len(vbo.data) * 4
 
         # write tag
-        self.write_bytes(struct.pack('I', NodeTag.NODE_TAG_VBO))
+        self.write_bytes(struct.pack('I', NodeTag.VERTEX_BUFFER))
 
         # write size
         self.write_bytes(struct.pack('I', size))
@@ -63,7 +63,7 @@ class GiygasFileBuilder(object):
         element_size = 4
 
         # write tag
-        self.write_bytes(struct.pack('I', NodeTag.NODE_TAG_EBO))
+        self.write_bytes(struct.pack('I', NodeTag.ELEMENT_BUFFER))
 
         # write count
         self.write_bytes(struct.pack('I', count))
@@ -83,7 +83,7 @@ class GiygasFileBuilder(object):
         vbo_count = len(vao.vbos)
 
         # write tag
-        self.write_bytes(struct.pack('I', NodeTag.NODE_TAG_VAO))
+        self.write_bytes(struct.pack('I', NodeTag.VERTEX_ATTRIBUTE_DEFINITION))
 
         # write vbo count
         self.write_bytes(struct.pack('H', vbo_count))
@@ -97,15 +97,14 @@ class GiygasFileBuilder(object):
         # write attribute count
         self.write_bytes(struct.pack('H', attrib_count))
 
+        # write stride
+        self.write_bytes(struct.pack('H', attribs.stride))
+
         for attrib in attribs.attributes:
             self.write_vao_attribute(attrib)
 
     def write_vao_attribute(self, attrib: AttributeData) -> None:
         self.write_bytes(struct.pack('B', attrib.component_size))
         self.write_bytes(struct.pack('B', attrib.component_count))
-
-
-
-
-
-
+        self.write_bytes(struct.pack('B', attrib.offset))
+        self.write_bytes(struct.pack('B', attrib.hint))

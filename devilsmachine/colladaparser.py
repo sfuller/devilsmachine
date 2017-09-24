@@ -5,7 +5,7 @@ import collada.polylist
 import collada.primitive
 import collada.triangleset
 
-from devilsmachine.data import Buffer, VAOData, VBOAttributesData, AttributeData, GiygasData
+from devilsmachine.data import Buffer, VAOData, VBOAttributesData, AttributeData, GiygasData, AttributeUsageHint
 from devilsmachine.vertex import Vertex
 
 
@@ -85,9 +85,10 @@ class ColladaParser(object):
             ebo.data.append(element)
 
         vbo_attribs = VBOAttributesData()
-        vbo_attribs.attributes.append(AttributeData(4, 3))  # pos
-        vbo_attribs.attributes.append(AttributeData(4, 3))  # normals
-        vbo_attribs.attributes.append(AttributeData(4, 2))  # uvs
+        vbo_attribs.attributes.append(AttributeData(4, 3, 0, AttributeUsageHint.POSITION))  # pos
+        vbo_attribs.attributes.append(AttributeData(4, 3, 12, AttributeUsageHint.NORMALS))  # normals
+        vbo_attribs.attributes.append(AttributeData(4, 2, 24, AttributeUsageHint.TEXTURE_COORDINATES_0))  # uvs
+        vbo_attribs.stride = 32
 
         vao.vbos.append(vbo_attribs)
 
