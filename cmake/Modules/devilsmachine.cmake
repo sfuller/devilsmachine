@@ -23,6 +23,7 @@ function(add_devilsmachine_commands
                 -c "${dm_config_file}"
                 -a list_output_files
                 --ir "${input_root}"
+                --or "${output_root}"
                 "${current_source_file}"
             OUTPUT_VARIABLE current_output_files
             ERROR_VARIABLE dmerror
@@ -44,7 +45,7 @@ function(add_devilsmachine_commands
                 --ir "${input_root}"
                 --or "${output_root}"
                 "${current_source_file}"
-            DEPENDS "${current_content_file}"
+            DEPENDS "${current_source_file}"
         )
     endforeach()
     set("${generated_files_var}" "${all_output_files}" PARENT_SCOPE)

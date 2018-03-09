@@ -15,7 +15,7 @@ def make_argparser() -> argparse.ArgumentParser:
     parser.add_argument('--config', '-c', required=True, help='Path to config file')
     parser.add_argument('--action', '-a', choices=['list_output_files', 'process'], required=True, help='Action to execute')
     parser.add_argument('--input_root', '--ir', required=True, help='Root directory for input files')
-    parser.add_argument('--output-root', '--or', help='Root directory for output files')
+    parser.add_argument('--output-root', '--or', required=True, help='Root directory for output files')
     parser.add_argument('input_file', help='Input file to operate on')
     return parser
 
@@ -73,7 +73,10 @@ def get_action(name: str) -> Callable[[Module, Any], int]:
 def list_output_files(module: Module, args) -> int:
     rel_path = os.path.relpath(args.input_file, args.input_root)
     output_files = module.get_output_files(rel_path)
-    print(';'.join(output_files))
+    absolute_paths = []
+    for path in output_files:
+        absolute_paths.append(os.path.normpath(os.path.join(args.output_root, path)))
+    print(';'.join(absolute_paths))
     return 0
 
 
