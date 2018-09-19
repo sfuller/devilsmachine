@@ -7,12 +7,18 @@ function(add_devilsmachine_commands
     input_root
     output_root
 )
+    if (WIN32)
+        set(sep ";")
+    else()
+        set(sep ":")
+    endif()
+
     find_package(PythonInterp 3.6 REQUIRED)
     set(pythonpath "")
     foreach(prefix_path ${CMAKE_PREFIX_PATH})
-        set(pythonpath "${pythonpath}:${prefix_path}/lib/python3")
+        set(pythonpath "${pythonpath}${sep}${prefix_path}/lib/python3")
     endforeach()
-    set(pythonpath "${pythonpath}:${CMAKE_CURRENT_SOURCE_DIR}")
+    set(pythonpath "${pythonpath}${sep}${CMAKE_CURRENT_SOURCE_DIR}")
     set(ENV{PYTHONPATH} "${pythonpath}")
 
     set (all_output_files "")
