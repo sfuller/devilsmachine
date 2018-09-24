@@ -9,8 +9,10 @@ function(add_devilsmachine_commands
 )
     if (WIN32)
         set(sep ";")
+        set(python_executable_name "python.exe")
     else()
         set(sep ":")
+        set(python_executable_name "python")
     endif()
 
     find_package(PythonInterp 3.6 REQUIRED)
@@ -57,11 +59,16 @@ function(add_devilsmachine_commands
         endif()
     endif()
 
+    set(venv_python_executable_path "bin/${python_executable_name}")
+    if (NOT EXISTS "${venv_python_executable_path}" AND WIN32)
+        set(venv_python_executable_path "Scripts/${python_executable_name}")
+    endif()
+
     message(STATUS "Updating dependencies for devilsmachine virtual env")
     execute_process(
         COMMAND
             "${CMAKE_COMMAND}" -E env "PYTHONPATH=${pythonpath}"
-            "${venv_path}/bin/python" -m devilsmachine -a update_dependencies
+            "${venv_path}/${venv_python_executable_path}" -m devilsmachine -a update_dependencies
             -c "${dm_config_file}"
             --venv-dummy-file "${venv_dummyfile_path}"
         RESULT_VARIABLE update_venv_dependencies_result
@@ -76,7 +83,7 @@ function(add_devilsmachine_commands
         OUTPUT "${venv_dummyfile_path}"
         COMMAND
             "${CMAKE_COMMAND}" -E env "PYTHONPATH=${pythonpath}"
-            "${venv_path}/bin/python" -m devilsmachine -a update_dependencies
+            "${venv_path}/${venv_python_executable_path}" -m devilsmachine -a update_dependencies
             -c "${dm_config_file}"
             --venv-dummy-file "${venv_dummyfile_path}"
         DEPENDS
@@ -87,7 +94,7 @@ function(add_devilsmachine_commands
     foreach(current_source_file ${source_files})
         execute_process(
             COMMAND
-                "${venv_path}/bin/python" -m devilsmachine
+                "${venv_path}/${venv_python_executable_path}" -m devilsmachine
                 -c "${dm_config_file}"
                 -a list_output_files
                 --ir "${input_root}"
@@ -107,7 +114,7 @@ function(add_devilsmachine_commands
             OUTPUT "${current_output_files}"
             COMMAND
                 "${CMAKE_COMMAND}" -E env "PYTHONPATH=${pythonpath}"
-                "${venv_path}/bin/python" -m devilsmachine
+                "${venv_path}/${venv_python_executable_path}" -m devilsmachine
                 -c "${dm_config_file}"
                 -a process
                 --ir "${input_root}"
