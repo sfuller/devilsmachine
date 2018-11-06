@@ -1,4 +1,5 @@
 import sys
-from devilsmachine import main
+
+from devilsmachine.impl import main
 
 sys.exit(main())
