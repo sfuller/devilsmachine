@@ -80,7 +80,14 @@ function(add_devilsmachine_commands
             ERROR_VARIABLE  update_venv_error
         )
         if (NOT update_venv_result EQUAL 0)
-            message(FATAL_ERROR "Failed to run ensurepip module: result: ${update_venv_result}. stderr:\n${update_venv_error}")
+            # ensurepip module failed not installed. Check if pip is installed, and cause an error if it's not installed.
+            execute_process(
+                COMMAND "${PYTHON_EXECUTABLE}" -m pip --version
+                RESULT_VARIABLE pip_version_result
+            )
+            if (NOT pip_version_result EQUAL 0)
+                message(FATAL_ERROR "Failed to run ensurepip module, and pip is not installed. Please install pip manually.")
+            endif()
         endif()
 
         execute_process(
