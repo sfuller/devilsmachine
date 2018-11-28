@@ -112,8 +112,21 @@ def update_dependencies(args: ArgumentData) -> int:
         return 0
 
     executable = sys.executable
-    pip_args = [executable, '-m', 'pip', 'install']
+
+    result = subprocess.run([executable, '-m', 'pip', 'freeze'], stdout=subprocess.PIPE, encoding='utf-8')
+    installed_packages: Set[str] = set(entry.strip().lower() for entry in result.stdout.split('\n'))
+
+    needed_packages: List[str] = []
+
     for dependency in config.dependencies:
+        if dependency.lower() not in installed_packages:
+            needed_packages.append(dependency)
+
+    if len(needed_packages) is 0:
+        return 0
+
+    pip_args = [executable, '-m', 'pip', 'install']
+    for dependency in needed_packages:
         pip_args.append(dependency)
 
     result = subprocess.run(pip_args)
