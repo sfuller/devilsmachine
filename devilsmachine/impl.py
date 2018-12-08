@@ -108,7 +108,13 @@ def process(args: ArgumentData) -> int:
 def update_dependencies(args: ArgumentData) -> int:
     config = get_config(args.config)
 
+    def finish():
+        with open(args.venv_dummy_file, 'a'):
+            pass
+        os.utime(args.venv_dummy_file, None)
+
     if len(config.dependencies) == 0:
+        finish()
         return 0
 
     executable = sys.executable
@@ -123,6 +129,7 @@ def update_dependencies(args: ArgumentData) -> int:
             needed_packages.append(dependency)
 
     if len(needed_packages) is 0:
+        finish()
         return 0
 
     pip_args = [executable, '-m', 'pip', 'install']
@@ -133,11 +140,7 @@ def update_dependencies(args: ArgumentData) -> int:
     if result.returncode is not 0:
         return result.returncode
 
-    # Touch dummy file
-    with open(args.venv_dummy_file, 'a'):
-        pass
-    os.utime(args.venv_dummy_file, None)
-
+    finish()
     return 0
 
 
