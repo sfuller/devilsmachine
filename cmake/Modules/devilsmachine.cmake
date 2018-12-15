@@ -39,6 +39,7 @@ function(add_devilsmachine_commands
     source_files
     generated_files_var
     dm_config_file
+    project_preprocessor_module_root
     input_root
     output_root
 )
@@ -58,12 +59,6 @@ function(add_devilsmachine_commands
     # environment to use our python path when running python commands during the CMake configure phase.
     #
     find_package(PythonInterp 3.6 REQUIRED)
-    set(pythonpath "")
-    foreach(prefix_path ${CMAKE_PREFIX_PATH})
-        set(pythonpath "${pythonpath}${sep}${prefix_path}/lib/python3")
-    endforeach()
-    set(pythonpath "${pythonpath}${sep}${CMAKE_CURRENT_SOURCE_DIR}")
-    set(ENV{PYTHONPATH} "${pythonpath}")
 
     set(venv_path "${CMAKE_CURRENT_BINARY_DIR}/devilsmachine_venv")
     set(venv_dummyfile_path "${CMAKE_CURRENT_BINARY_DIR}/devilsmachine_venv_dummy")
@@ -109,10 +104,31 @@ function(add_devilsmachine_commands
         if (NOT update_venv_result EQUAL 0)
             message(FATAL_ERROR "Cannot update devilsmachine venv: result: ${update_venv_result}. stderr:\n${update_venv_error}")
         endif()
+
+        # Add python lib paths of the cmake prefixes to this virtual env.
+        list(LENGTH CMAKE_PREFIX_PATH prefix_count)
+        math(EXPR last_prefix_index "${prefix_count} - 1")
+        foreach (prefix_index RANGE "${last_prefix_index}")
+            list(GET CMAKE_PREFIX_PATH "${prefix_index}" prefix)
+            file (
+                WRITE
+                    "${venv_path}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/devilsmachine_cmake_prefix_${prefix_index}.pth"
+                    "${prefix}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+            )
+        endforeach()
+
+        # Add the project_preprocessor_module_root directory as a python path.
+        get_filename_component(project_preprocessor_module_root_absolute "${project_preprocessor_module_root}" ABSOLUTE)
+        file (
+            WRITE
+                "${venv_path}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/devilsmachine_project_preprocessor_modules.pth"
+                "${project_preprocessor_module_root_absolute}"
+        )
+
     endif()
 
     #
-    # Determine the path of the virutla env python wrapper. It's different on Windows.
+    # Determine the path of the virtual env python wrapper. It's different on Windows.
     #
     set(venv_python_executable_path "bin/${python_executable_name}")
     if (NOT EXISTS "${venv_python_executable_path}" AND WIN32)
@@ -125,7 +141,6 @@ function(add_devilsmachine_commands
     message(STATUS "Updating dependencies for devilsmachine virtual env")
     execute_process(
         COMMAND
-            "${CMAKE_COMMAND}" -E env "PYTHONPATH=${pythonpath}"
             "${venv_path}/${venv_python_executable_path}" -m devilsmachine -a update_dependencies
             -c "${dm_config_file}"
             --venv-dummy-file "${venv_dummyfile_path}"
@@ -144,7 +159,6 @@ function(add_devilsmachine_commands
     add_custom_command(
         OUTPUT "${venv_dummyfile_path}"
         COMMAND
-            "${CMAKE_COMMAND}" -E env "PYTHONPATH=${pythonpath}"
             "${venv_path}/${venv_python_executable_path}" -m devilsmachine -a update_dependencies
             -c "${dm_config_file}"
             --venv-dummy-file "${venv_dummyfile_path}"
@@ -229,7 +243,6 @@ function(add_devilsmachine_commands
         add_custom_command(
             OUTPUT "${current_output_files}"
             COMMAND
-                "${CMAKE_COMMAND}" -E env "PYTHONPATH=${pythonpath}"
                 "${venv_path}/${venv_python_executable_path}" -m devilsmachine
                 -c "${dm_config_file}"
                 -a process
